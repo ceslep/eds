@@ -1,104 +1,146 @@
 'use strict';
 
 
-var server = servidor.indexOf("5500")>0?"http://127.0.0.1/estacion/php/":"php/";
+var server = servidor.indexOf("5500") > 0 ? "http://127.0.0.1/estacion/php/" : "php/";
 var tableClientes;
 var tableInventarios;
 
-class Venta{
-    constructor(index,codigo,nombre,cantidad,precio) { 
-        
-        this.index=index;
-        this.codigo=codigo;
-        this.nombre=nombre;
-        this.cantidad=cantidad;
-        this.precio=precio;
-      } 
-    
+class Venta {
+    constructor(index, codigo, nombre, cantidad, precio) {
+
+        this.index = index;
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.cantidad = cantidad;
+        this.precio = precio;
+    }
+
 };
 
-var arrayVentas=[];
-
-$(document).ready(_=>{
 
 
-    
-
-    $(".nav-link").click(async e=>{
-            e.preventDefault();
-            $(".navbar-toggler").click();
-            $("[id^='c_']").addClass("d-none");
-            let page = $(e.currentTarget).data("page");
-            $(`#${page}`).removeClass("d-none");
-            switch(page){
-
-                case "c_clientes":tablaClientes(await getClientes());break;
-                case "c_inventarios":getInventarios(await getCodigos());break;
-                case "c_ventas":ventas();break;    
-            }
+$(document).ready(_ => {
 
 
-            
+
+
+    $(".nav-link").click(async e => {
+        e.preventDefault();
+        $(".navbar-toggler").click();
+        $("[id^='c_']").addClass("d-none");
+        let page = $(e.currentTarget).data("page");
+        $(`#${page}`).removeClass("d-none");
+        switch (page) {
+
+            case "c_clientes": tablaClientes(await getClientes()); break;
+            case "c_inventarios": getInventarios(await getCodigos()); break;
+            case "c_ventas": ; break;
+        }
+
+
+
     });
 
 
     var data = Bind({
-        cliente: null,
-        ean13: null,
-        precio: 0,
-        compra: 0,
-        info: null,
-        total :0,
-      }, {
-        cliente: '.cliente',
-        ean13: '.ean13',
-        precio: {
+        venta: {
+            cliente: 0,
+            ean13: null,
+            precio: 0,
+            compra: 0,
+            info: null,
+            total: 0,
+            itemsVenta: [],
+        }
+    }, {
+        venta: {
+            callback: function () {
+
+                
+            },
+        },
+
+        'venta.cliente': '.cliente',
+        'venta.ean13': '.ean13',
+        'venta.precio': {
             dom: '.precio',
-              transform: function (v) {
-              if (!isNaN(v))    
-              return '$ ' + parseFloat(v).toLocaleString('es-CO');
-              else return "";
+            transform: function (v) {
+                if (!isNaN(v))
+                    return '$ ' + parseFloat(v).toLocaleString('es-CO');
+                else return "";
             }
         },
-        compra: {
+        'venta.compra': {
             dom: '.compra',
-              transform: function (v) {
-              if (!isNaN(v))
-              return '$ ' + parseFloat(v).toLocaleString('es-CO');
+            transform: function (v) {
+                if (!isNaN(v))
+                    return '$ ' + parseFloat(v).toLocaleString('es-CO');
             }
         },
-        info: {
+        'venta.info': {
             dom: '.info',
-              transform: function (v) {
-              if (isNaN(v))    
-              return v;
+            transform: function (v) {
+                if (isNaN(v))
+                    return v;
             }
         },
-        total: {
+        'venta.total': {
             dom: '.total',
-              transform: function (v) {
-              if (!isNaN(v))
-              return '$ ' + parseFloat(v).toLocaleString('es-CO');
+            transform: function (v) {
+                
+                if (!isNaN(v))
+                    return '$ ' + parseFloat(v).toLocaleString('es-CO');
+            }
+        },
+        'venta.itemsVenta': {
+            dom: ".tventas",
+            transform: function (v) {
+
+                let html = `
+                    <tr data-index="${v.index}">
+                    <td>
+                        ${v.index}
+                    </td>
+                    <td>
+                        ${v.nombre}
+                    </td>
+                    <td contenteditable="false" class="tdEditable">
+                        ${v.cantidad}
+                    </td>
+                    <td class="text-right">
+                        $ ${v.precio.toLocaleString("es-CO")}.
+                    </td>
+                    <td class="text-center dt">
+                    <a href="#!" data-index="${v.index}" class="delete">
+                        <i class="fas fa-trash-alt text-danger"></i>
+                    </a>
+                    </td>
+                </tr>       
+                    `;
+                return html;
+               
             }
         }
-      });
 
-    const getClientes = async _=>{
 
-        let response = await fetch(server+"getClientes.php",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            mode:"cors"
+    });
+
+    const getClientes = async _ => {
+
+        let response = await fetch(server + "getClientes.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "cors"
         });
         return await response.json();
-    }   
+    }
 
-     const tablaClientes = async clientes =>{   
-       
-        let html="";
-        let k=1;
-        clientes.forEach(cliente=>{
-            html+=`
+    const tablaClientes = async clientes => {
+
+        let html = "";
+        let k = 1;
+        clientes.forEach(cliente => {
+            html += `
                 <tr>    
                         <th scope="row">${k}</th>
                         <td>
@@ -112,47 +154,44 @@ $(document).ready(_=>{
             k++;
         });
         $("#tClientes").empty().html(html);
-        
-        
-        if(!(typeof tableClientes!==undefined))
-        tableClientes.destroy();
 
-   
+
+        if (!(typeof tableClientes !== undefined))
+            tableClientes.destroy();
+
+
         tableClientes = $('#tableClientes').DataTable({
             "language": {
                 "url": "js/mdbjs/Spanish.json"
             }
         });
-        
-        
+
+
         $('.dataTables_length').addClass('bs-select');
 
     }
 
 
-    const ventas = _=>{
-
-        arrayVentas=[];
-    }
-
     
 
-    const getCodigos = async _=>{
 
-        let response = await fetch(server+"getInventario.php",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            mode:"cors"
+
+    const getCodigos = async _ => {
+
+        let response = await fetch(server + "getInventario.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "cors"
         });
         return await response.json();
 
-  }      
+    }
 
-  const getInventarios = async inventarios =>{ 
-        let html="";
-        let k=1;
-        inventarios.forEach(inventario=>{
-            html+=`
+    const getInventarios = async inventarios => {
+        let html = "";
+        let k = 1;
+        inventarios.forEach(inventario => {
+            html += `
                 <tr>    
                         <th scope="row">${k}</th>
                         <td>
@@ -181,184 +220,186 @@ $(document).ready(_=>{
             k++;
         });
         $("#tInventarios").empty().html(html);
-       
-        console.log(tableInventarios);
-        if(tableInventarios!==undefined)
-        tableInventarios.destroy();
 
-   
+        console.log(tableInventarios);
+        if (tableInventarios !== undefined)
+            tableInventarios.destroy();
+
+
         tableInventarios = $('#tableInventarios').DataTable({
             "language": {
                 "url": "js/mdbjs/Spanish.json"
             }
         });
-        
-        
+
+
         $('.dataTables_length').addClass('bs-select');
 
     }
 
-    $("#prbJS").click(e=>{
-        let 
-        someJSONdata = [
-           {
-              name: 'John Doe',
-              email: 'john@doe.com',
-              phone: '111-111-1111'
-           },
-           {
-              name: 'Barry Allen',
-              email: 'barry@flash.com',
-              phone: '222-222-2222'
-           },
-           {
-              name: 'Cool Dude',
-              email: 'cool@dude.com',
-              phone: '333-333-3333'
-           }
-        ];
-        printJS({printable: someJSONdata, properties: ['name', 'email', 'phone'], type: 'json'})
+    $("#prbJS").click(e => {
+        let
+            someJSONdata = [
+                {
+                    name: 'John Doe',
+                    email: 'john@doe.com',
+                    phone: '111-111-1111'
+                },
+                {
+                    name: 'Barry Allen',
+                    email: 'barry@flash.com',
+                    phone: '222-222-2222'
+                },
+                {
+                    name: 'Cool Dude',
+                    email: 'cool@dude.com',
+                    phone: '333-333-3333'
+                }
+            ];
+        printJS({ printable: someJSONdata, properties: ['name', 'email', 'phone'], type: 'json' })
     });
 
 
     (async () => {
         try {
-          const isBluetoothAvailable = await navigator.bluetooth.getAvailability();
-          console.log(`> Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`);
-          $("#log").text(`Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`)
-        } catch(error) {
-          console.log('Argh! ' + error);
-          $("#log").text('Argh! ' + error);
+            const isBluetoothAvailable = await navigator.bluetooth.getAvailability();
+            console.log(`> Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`);
+            $("#log").text(`Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`)
+        } catch (error) {
+            console.log('Argh! ' + error);
+            $("#log").text('Argh! ' + error);
         }
-      })();
-      
-      if ('onavailabilitychanged' in navigator.bluetooth) {
-        navigator.bluetooth.addEventListener('availabilitychanged', function(event) {
-          console.log(`> Bluetooth is ${event.value ? 'available' : 'unavailable'}`);
-          $("#log").text(`Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`)
+    })();
+
+    if ('onavailabilitychanged' in navigator.bluetooth) {
+        navigator.bluetooth.addEventListener('availabilitychanged', function (event) {
+            console.log(`> Bluetooth is ${event.value ? 'available' : 'unavailable'}`);
+            $("#log").text(`Bluetooth is ${isBluetoothAvailable ? 'available' : 'unavailable'}`)
         });
-      }
+    }
 
 
-      const selClientes = (async _=>{
-          let html='<option value="" disabled selected>Seleccione un cliente</option>';
-          let clientes = await getClientes();
-           clientes.forEach(cliente=>{
-               html+=`<option value="${cliente.identificacion}" data-secondary-text="${cliente.identificacion}">${cliente.nombres}</option>`;
-           }); 
-           $("#cliente").empty().html(html);
-           $('#cliente').select2({
-            
-          });
-      })();
+    const selClientes = (async _ => {
+        let html = '<option value="" disabled selected>Seleccione un cliente</option>';
+        let clientes = await getClientes();
+        clientes.forEach(cliente => {
+            html += `<option value="${cliente.identificacion}" data-secondary-text="${cliente.identificacion}">${cliente.nombres}</option>`;
+        });
+        $("#cliente").empty().html(html);
+        $('#cliente').select2({
 
-      const selCodigos = (async _=>{
-        let html='<option value="" disabled selected>Seleccione un código</option>';
+        });
+    })();
+
+    const selCodigos = (async _ => {
+        let html = '<option value="" disabled selected>Seleccione un código</option>';
         let codigos = await getCodigos();
-         codigos.forEach(codigo=>{
-             html+=`<option data-info="${codigo.Referencia} ${codigo.Presentacion} ${codigo.Proveedor}" data-precio="${codigo.Venta}" data-compra="${codigo.Costo}" value="${codigo.ean13}" data-secondary-text="${codigo.Referencia}">${codigo.Producto}:${codigo.ean13}</option>`;
-         }); 
-         $("#codigo").empty().html(html);
-         $('#codigo').select2({
-          
+        codigos.forEach(codigo => {
+            html += `<option data-info="${codigo.Referencia} ${codigo.Presentacion} ${codigo.Proveedor}" data-precio="${codigo.Venta}" data-compra="${codigo.Costo}" value="${codigo.ean13}" data-secondary-text="${codigo.Referencia}">${codigo.Producto}:${codigo.ean13}</option>`;
+        });
+        $("#codigo").empty().html(html);
+        $('#codigo').select2({
+
         });
     })();
 
 
 
-    const tableVentas = arrayVentas=>{
+    $(document).on("change", "#codigo", e => {
 
-        let html="";
-        let ki=1;
-        let total=0;
-        arrayVentas.forEach((vt,i)=>{
-           
-            html+=`
-                    <tr>
-                        <td>
-                            ${ki}
-                        </td>
-                        <td>
-                            ${vt.nombre}
-                        </td>
-                        <td>
-                            ${vt.cantidad}
-                        </td>
-                        <td class="float-left">
-                            $ ${vt.precio.toLocaleString("es-CO")}.
-                        </td>
-                        <td>
-                        <a href="#!" data-index="${ki}" class="delete">
-                            <i class="fas fa-trash-alt text-danger"></i>
-                        </a>
-                        </td>
-                    </tr>
-        `;
-         arrayVentas[i].index=ki;
-         ki++;   
-         total+=vt.precio;   
-         
-    });
-    data.total=parseInt(total);
-    $("#tventas").empty().html(html);  
-    $("#tableventas").removeClass("d-none");
-    
-}
-
-    $(document).on("change","#codigo",e=>{
-        
         data.precio = parseInt($("#codigo option:selected").data("precio"));
         data.compra = parseInt($("#codigo option:selected").data("compra"));
         data.info = $("#codigo option:selected").data("info");
-        data.info = data.info.replace("null","");
-        data.info = data.info.replace("null","");
-        
-        let venta = new Venta(arrayVentas.length+1,$("#codigo").val(),data.info,parseInt($("#cantidad").val()),parseInt($("#cantidad").val())*data.precio);
-        arrayVentas.push(venta);
-        tableVentas(arrayVentas);
+        data.info = data.info.replace("null", "");
+        data.info = data.info.replace("null", "");
+        data.venta.itemsVenta.push(new Venta(data.venta.itemsVenta.length + 1, $("#codigo").val(), data.info, parseInt($("#cantidad").val()), parseInt($("#cantidad").val()) * data.precio));
         $("#cantidad").val("1");
+        calculaTotal();
     });
 
-    $("#frmVentas").submit(async e=>{
-        e.preventDefault();
-        console.log($(e.currentTarget).serializeObject());
-        let response = await fetch()
-    });
+    
 
 
-    var code="";
+    var code = "";
     var reading = false;
 
-    $(window).on("keydown",e=>{
-        if (e.keyCode===13){
-            if(code.length>10){
-              console.log(code);
-              $("#codigo").val(code).trigger("change");
-              console.log(code);
-              /// code ready to use                
-              code="";
-           }
-      }else{
-           code+=e.key;//while this is not an 'enter' it stores the every key 
-           
-      }
-     //run a timeout of 200ms at the first read and clear everything
-      if(!reading){
-           reading=true;
-           setTimeout(()=>{
-            code="";
-            reading=false;
-        }, 100);
+    $(window).on("keydown", e => {
+        if (e.keyCode === 13) {
+            if (code.length > 10) {
+                console.log(code);
+                $("#codigo").val(code).trigger("change");
+                console.log(code);
+                /// code ready to use                
+                code = "";
+            }
+        } else {
+            code += e.key;//while this is not an 'enter' it stores the every key 
+
+        }
+        //run a timeout of 200ms at the first read and clear everything
+        if (!reading) {
+            reading = true;
+            setTimeout(() => {
+                code = "";
+                reading = false;
+            }, 100);
+        }
+    });
+
+    $(document).on("click", ".delete", e => {
+
+        let filter = $(e.currentTarget).data("index");
+        data.venta.itemsVenta = data.venta.itemsVenta.filter(item => item.index !== filter);
+        calculaTotal();
+    });
+
+
+    $(document).on("click", ".tdEditable", e => {
+        let celda=$(e.currentTarget);
+        $(e.currentTarget).attr("contenteditable", true);
+        
+    });
+
+    $(document).on("blur",".tdEditable",e=>{
+
+        let celda=$(e.currentTarget);
+        let index = parseInt(celda.parent().data("index"));
+        console.log(data.venta.itemsVenta[index-1]);
+        let cantidad = parseInt(celda.text());
+        data.venta.itemsVenta[index-1].cantidad=cantidad;
+        data.venta.itemsVenta[index-1].precio=cantidad*data.venta.itemsVenta[index-1].precio;
+        data.venta.itemsVenta.push(new Venta(0,0,0,0,0));
+        data.venta.itemsVenta.pop();
+        calculaTotal();
+        
+    });
+
+
+    const calculaTotal = _=>{
+        data.venta.total=0;
+        data.venta.itemsVenta.forEach(obj=>{
+            console.log(obj.precio);
+            if (!isNaN(obj.precio))
+            data.venta.total+=parseInt(obj.precio);
+        });
     }
+
+
+    $("#frmVentas").submit(async e => {
+        e.preventDefault();
+        console.log($(e.currentTarget).serializeObject());
+        $("input[name='itemsVenta']").val(JSON.stringify(data.venta.itemsVenta));
+        let frmData  = JSON.stringify($(e.currentTarget).serializeObject()); 
+        console.log(frmData);
+        let response = await fetch(server+"guardarVenta.php",{
+            method:"POST",
+            body:frmData,
+            headers:{"Content-Type":"application/json"},
+            mode:"cors",
+        });
+        let venta = await response.json();
+        console.log(venta);
+    });
+
 });
 
-  $(document).on("click",".delete",e=>{
-
-        let filter=$(e.currentTarget).data("index");
-        console.log(filter);
-        arrayVentas = arrayVentas.filter(item => item.index !== filter);
-        tableVentas(arrayVentas);
-        console.log(arrayVentas);
-  });
-    
-});

@@ -109,17 +109,15 @@
 
         <div class="container d-none w-auto"  id="c_ventas" style="height:95vh;">
             <form id="frmVentas" class="was-validated">
+             <input type="hidden" name="itemsVenta">   
             <div class="row mt-5">
                 <div class="col text-center">
                  
-                    <div class="md-form">
-                        
-                        <select class="form-control cliente w-100" searchable="Buscar..." id="cliente" name="cliente" style="width: 100%">
-                           
-                            
-                          </select>
-                          
-                      </div>
+                    
+                     <div class="md-form">
+                        <select class="form-control cliente" searchable="Buscar..." id="cliente" name="cliente" style="width: 100%">
+                        </select>
+                     </div>   
                       <div class="md-form">
                         
                         <select class="form-control ean13" searchable="Buscar..." id="codigo" name="codigo" required style="width: 100%">
@@ -197,8 +195,8 @@
                 </div>
             </form>   
             <div class="row">
-                <div class="col-8">
-                    <table class="table table-striped w-auto table-bordered table-sm d-none" style="overflow: auto;" id="tableventas">
+                <div class="col-12 col-sm-8">
+                    <table class="table table-striped table-bordered table-sm" style="overflow: auto;" id="tableventas">
                         <thead>
                             <tr>
                                 <th>
@@ -213,15 +211,17 @@
                                 <th>
                                     Valor
                                 </th>
-                                
+                                <th>
+
+                                </th>
                             </tr>
                         </thead>
-                        <tbody id="tventas">
+                        <tbody class="tventas">
                             
                         </tbody>
                     </table>
                 </div>
-                <div class="col-4">
+                <div class="col-12 col-sm-4">
                     <div class="card">
                         <div class="card-body">
                             <h3 class="card-title"><strong>Total</strong></h3>
