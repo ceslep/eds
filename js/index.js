@@ -6,9 +6,10 @@ var tableClientes;
 var tableInventarios;
 
 class Venta {
-    constructor(index, codigo, nombre, cantidad, precio) {
+    constructor(index, cliente, codigo, nombre, cantidad, precio) {
 
         this.index = index;
+        this.cliente = cliente;
         this.codigo = codigo;
         this.nombre = nombre;
         this.cantidad = cantidad;
@@ -44,39 +45,20 @@ $(document).ready(_ => {
 
     var data = Bind({
         venta: {
-            cliente: 0,
-            ean13: null,
-            precio: 0,
-            compra: 0,
             info: null,
             total: 0,
-            itemsVenta: [],
+            itemsVenta: new Array(),
         }
     }, {
         venta: {
             callback: function () {
 
-                
+
             },
         },
 
-        'venta.cliente': '.cliente',
-        'venta.ean13': '.ean13',
-        'venta.precio': {
-            dom: '.precio',
-            transform: function (v) {
-                if (!isNaN(v))
-                    return '$ ' + parseFloat(v).toLocaleString('es-CO');
-                else return "";
-            }
-        },
-        'venta.compra': {
-            dom: '.compra',
-            transform: function (v) {
-                if (!isNaN(v))
-                    return '$ ' + parseFloat(v).toLocaleString('es-CO');
-            }
-        },
+       
+        
         'venta.info': {
             dom: '.info',
             transform: function (v) {
@@ -87,7 +69,7 @@ $(document).ready(_ => {
         'venta.total': {
             dom: '.total',
             transform: function (v) {
-                
+
                 if (!isNaN(v))
                     return '$ ' + parseFloat(v).toLocaleString('es-CO');
             }
@@ -96,6 +78,7 @@ $(document).ready(_ => {
             dom: ".tventas",
             transform: function (v) {
 
+                
                 let html = `
                     <tr data-index="${v.index}">
                     <td>
@@ -108,6 +91,7 @@ $(document).ready(_ => {
                         ${v.cantidad}
                     </td>
                     <td class="text-right">
+                        
                         $ ${v.precio.toLocaleString("es-CO")}.
                     </td>
                     <td class="text-center dt">
@@ -118,7 +102,7 @@ $(document).ready(_ => {
                 </tr>       
                     `;
                 return html;
-               
+
             }
         }
 
@@ -172,7 +156,7 @@ $(document).ready(_ => {
     }
 
 
-    
+
 
 
 
@@ -303,7 +287,18 @@ $(document).ready(_ => {
         });
     })();
 
-
+    $("#cliente").change(e=>{
+        let cliente=$(e.currentTarget).val();
+        console.log(cliente);
+        let i=0;
+        data.venta.cliente=cliente;
+        data.venta.itemsVenta.forEach(_=>{
+           data.venta.itemsVenta[i].cliente=cliente;
+           console.log(data.venta.itemsVenta[i]);
+           i++;
+        });
+        console.log(data.__export());
+    });
 
     $(document).on("change", "#codigo", e => {
 
@@ -312,12 +307,12 @@ $(document).ready(_ => {
         data.info = $("#codigo option:selected").data("info");
         data.info = data.info.replace("null", "");
         data.info = data.info.replace("null", "");
-        data.venta.itemsVenta.push(new Venta(data.venta.itemsVenta.length + 1, $("#codigo").val(), data.info, parseInt($("#cantidad").val()), parseInt($("#cantidad").val()) * data.precio));
+        data.venta.itemsVenta.push(new Venta(data.venta.itemsVenta.length + 1,data.venta.cliente, $("#codigo").val(), data.info, parseInt($("#cantidad").val()), parseInt($("#cantidad").val()) * data.precio));
         $("#cantidad").val("1");
         calculaTotal();
     });
 
-    
+
 
 
     var code = "";
@@ -355,47 +350,51 @@ $(document).ready(_ => {
 
 
     $(document).on("click", ".tdEditable", e => {
-        let celda=$(e.currentTarget);
+        let celda = $(e.currentTarget);
         $(e.currentTarget).attr("contenteditable", true);
-        
+
     });
 
-    $(document).on("blur",".tdEditable",e=>{
+    $(document).on("blur", ".tdEditable", e => {
 
-        let celda=$(e.currentTarget);
+        let celda = $(e.currentTarget);
         let index = parseInt(celda.parent().data("index"));
-        console.log(data.venta.itemsVenta[index-1]);
+        console.log(data.venta.itemsVenta[index - 1]);
         let cantidad = parseInt(celda.text());
-        data.venta.itemsVenta[index-1].cantidad=cantidad;
-        data.venta.itemsVenta[index-1].precio=cantidad*data.venta.itemsVenta[index-1].precio;
-        data.venta.itemsVenta.push(new Venta(0,0,0,0,0));
+        data.venta.itemsVenta[index - 1].cantidad = cantidad;
+        data.venta.itemsVenta[index - 1].precio = cantidad * data.venta.itemsVenta[index - 1].precio;
+        data.venta.itemsVenta.push(new Venta(0,0, 0, 0, 0, 0));
         data.venta.itemsVenta.pop();
         calculaTotal();
-        
+
     });
 
 
-    const calculaTotal = _=>{
-        data.venta.total=0;
-        data.venta.itemsVenta.forEach(obj=>{
+    const calculaTotal = _ => {
+        data.venta.total = 0;
+        data.venta.itemsVenta.forEach(obj => {
             console.log(obj.precio);
             if (!isNaN(obj.precio))
-            data.venta.total+=parseInt(obj.precio);
+                data.venta.total += parseInt(obj.precio);
         });
     }
 
 
     $("#frmVentas").submit(async e => {
         e.preventDefault();
-        console.log($(e.currentTarget).serializeObject());
-        $("input[name='itemsVenta']").val(JSON.stringify(data.venta.itemsVenta));
-        let frmData  = JSON.stringify($(e.currentTarget).serializeObject()); 
+       
+        let ay = new Array();
+        ay = [...data.venta.itemsVenta];
+
+        $("input[name='itemsVenta']").val(JSON.stringify(ay));
+        //console.log($("input[name='itemsVenta']").val());
+        let frmData = JSON.stringify($(e.currentTarget).serializeObject());
         console.log(frmData);
-        let response = await fetch(server+"guardarVenta.php",{
-            method:"POST",
-            body:frmData,
-            headers:{"Content-Type":"application/json"},
-            mode:"cors",
+        let response = await fetch(server + "guardarVenta.php", {
+            method: "POST",
+            body: JSON.stringify(ay),
+            headers: { "Content-Type": "application/json" },
+            mode: "cors",
         });
         let venta = await response.json();
         console.log(venta);
